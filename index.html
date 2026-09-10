@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>高中學習番茄鐘 App</title>
+  <style>
+    :root{
+      --bg:#fff8ea;
+      --card:#ffffff;
+      --ink:#213047;
+      --muted:#637083;
+      --primary:#ff6b6b;
+      --primary2:#ff9f43;
+      --blue:#4dabf7;
+      --green:#51cf66;
+      --purple:#845ef7;
+      --pink:#f06595;
+      --yellow:#ffd43b;
+      --line:#e7edf7;
+      --shadow:0 18px 45px rgba(34, 48, 74, .12);
+      --radius:24px;
+      --large:18px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+      background:
+        radial-gradient(circle at 10% 5%, rgba(255, 214, 102, .55), transparent 26%),
+        radial-gradient(circle at 92% 8%, rgba(77, 171, 247, .28), transparent 28%),
+        radial-gradient(circle at 70% 88%, rgba(132, 94, 247, .20), transparent 28%),
+        var(--bg);
+      color:var(--ink);
+      font-size:var(--large);
+      line-height:1.6;
+      min-height:100vh;
+    }
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    .app{
+      width:min(1180px, calc(100% - 28px));
+      margin:0 auto;
+      padding:22px 0 56px;
+    }
+    .hero{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:20px;
+      align-items:stretch;
+      margin-bottom:18px;
+    }
+    .hero-card{
+      position:relative;
+      overflow:hidden;
+      background:linear-gradient(135deg, #ff6b6b 0%, #ff9f43 48%, #ffd43b 100%);
+      color:white;
+      border-radius:32px;
+      padding:30px;
+      box-shadow:var(--shadow);
+      min-height:210px;
+    }
+    .hero-card::after{
+      content:"";
+      position:absolute;
+      right:-60px; top:-70px;
+      width:210px; height:210px;
+      background:rgba(255,255,255,.22);
+      border-radius:50%;
+    }
+    .hero-card h1{
+      margin:0 0 10px;
+      font-size:clamp(30px, 4vw, 48px);
+      line-height:1.15;
+      letter-spacing:.02em;
+    }
+    .hero-card p{
+      max-width:720px;
+      margin:0;
+      font-size:20px;
+      font-weight:700;
+      text-shadow:0 1px 8px rgba(0,0,0,.08);
+    }
+    .mini-panel{
+      background:rgba(255,255,255,.88);
+      border:1px solid rgba(255,255,255,.7);
+      border-radius:32px;
+      padding:22px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(10px);
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      gap:14px;
+    }
+    .status-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:12px;
+    }
+    .status{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:14px;
+    }
+    .status strong{
+      display:block;
+      font-size:28px;
+      line-height:1.1;
+    }
+    .status span{color:var(--muted);font-size:15px}
+    .top-actions{display:flex; gap:10px; flex-wrap:wrap}
+    .chip,.btn{
+      border:none;
+      border-radius:999px;
+      padding:10px 16px;
+      background:#f1f5ff;
+      color:var(--ink);
+      font-weight:800;
+      box-shadow:0 6px 14px rgba(33,48,71,.08);
+    }
+    .btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary2)); color:white}
+    .btn.blue{background:linear-gradient(135deg,#4dabf7,#3bc9db); color:white}
+    .btn.green{background:linear-gradient(135deg,#51cf66,#20c997); color:white}
+    .btn.purple{background:linear-gradient(135deg,#845ef7,#cc5de8); color:white}
+    .btn.warn{background:#fff4cc;color:#7a5300}
+    .btn.ghost{background:#fff;border:1px solid var(--line);box-shadow:none}
+    .btn.danger{background:#ffe3e3;color:#c92a2a}
+    .btn:disabled{opacity:.55;cursor:not-allowed}
+    .tabs{
+      position:sticky;
+      top:0;
+      z-index:10;
+      background:rgba(255,248,234,.86);
+      backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.8);
+      border-radius:24px;
+      padding:8px;
+      display:flex;
+      gap:8px;
+      overflow:auto;
+      box-shadow:0 10px 28px rgba(34,48,74,.08);
+      margin:16px 0;
+    }
+    .tab{
+      flex:1 0 auto;
+      border:none;
+      background:transparent;
+      color:var(--muted);
+      border-radius:18px;
+      padding:12px 14px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+    .tab.active{
+      background:#fff;
+      color:var(--primary);
+      box-shadow:0 8px 20px rgba(34,48,74,.08);
+    }
+    .section{display:none; animation:fade .22s ease}
+    .section.active{display:block}
+    @keyframes fade{from{opacity:.5;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:18px;
+    }
+    .card{
+      background:rgba(255,255,255,.92);
+      border:1px solid rgba(255,255,255,.85);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:22px;
+    }
+    h2,h3{margin:0 0 14px;line-height:1.25}
+    h2{font-size:30px}
+    h3{font-size:22px}
+    .muted{color:var(--muted)}
+    .form-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+    }
+    label{
+      display:block;
+      font-weight:900;
+      margin-bottom:7px;
+      color:#30425f;
+    }
+    input,select,textarea{
+      width:100%;
+      border:2px solid #edf2ff;
+      border-radius:16px;
+      background:#fff;
+      color:var(--ink);
+      padding:12px 14px;
+      min-height:48px;
+      outline:none;
+      transition:.18s;
+    }
+    input:focus,select:focus,textarea:focus{
+      border-color:#74c0fc;
+      box-shadow:0 0 0 4px rgba(77,171,247,.15);
+    }
+    textarea{min-height:92px;resize:vertical}
+    .full{grid-column:1/-1}
+    .preset-list,.log-list,.strategy-list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      max-height:420px;
+      overflow:auto;
+      padding-right:4px;
+    }
+    .preset,.log,.strategy{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+    }
+    .preset-head,.log-head,.strategy-head{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+    }
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border-radius:999px;
+      padding:5px 10px;
+      font-size:14px;
+      font-weight:900;
+      background:#f1f5ff;
+      color:#3b5bdb;
+      margin:4px 4px 0 0;
+    }
+    .tag.orange{background:#fff4e6;color:#d9480f}
+    .tag.green{background:#ebfbee;color:#2b8a3e}
+    .tag.pink{background:#fff0f6;color:#c2255c}
+    .tag.purple{background:#f3f0ff;color:#5f3dc4}
+    .timer-wrap{
+      display:grid;
+      grid-template-columns:.95fr 1.05fr;
+      gap:18px;
+      align-items:stretch;
+    }
+    .timer-card{
+      text-align:center;
+      background:linear-gradient(180deg,#fff 0%,#fff7f7 100%);
+    }
+    .ring{
+      width:min(320px,85vw);
+      height:min(320px,85vw);
+      margin:8px auto 18px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      background:conic-gradient(var(--primary) 0deg, #edf2ff 0deg);
+      padding:16px;
+      transition:background .4s linear;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.8), 0 18px 38px rgba(255,107,107,.2);
+    }
+    .ring-inner{
+      width:100%;
+      height:100%;
+      border-radius:50%;
+      background:#fff;
+      display:grid;
+      place-items:center;
+      padding:20px;
+      box-shadow:inset 0 0 24px rgba(34,48,74,.06);
+    }
+    .time{
+      font-size:clamp(48px, 9vw, 72px);
+      font-weight:1000;
+      letter-spacing:.02em;
+      line-height:1;
+    }
+    .mode{
+      color:var(--primary);
+      font-weight:1000;
+      margin-top:8px;
+    }
+    .timer-actions{
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .note-box{
+      background:#f8fbff;
+      border:1px solid #e7f0ff;
+      border-radius:20px;
+      padding:16px;
+    }
+    .task-summary{
+      display:grid;
+      gap:10px;
+    }
+    .quote{
+      border-left:6px solid var(--yellow);
+      background:#fff9db;
+      padding:12px 14px;
+      border-radius:16px;
+      font-weight:800;
+    }
+    .dash-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:14px;
+      margin-bottom:18px;
+    }
+    .metric{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:18px;
+      box-shadow:0 10px 22px rgba(34,48,74,.07);
+    }
+    .metric b{display:block;font-size:32px;line-height:1.1}
+    .metric span{color:var(--muted);font-size:15px;font-weight:800}
+    .chart-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+    }
+    .bar-row{
+      display:grid;
+      grid-template-columns:110px 1fr 58px;
+      gap:10px;
+      align-items:center;
+      margin:12px 0;
+      font-size:16px;
+    }
+    .bar-track{
+      background:#edf2ff;
+      border-radius:999px;
+      overflow:hidden;
+      height:18px;
+    }
+    .bar{
+      height:100%;
+      min-width:6px;
+      border-radius:999px;
+      background:linear-gradient(90deg,#4dabf7,#845ef7);
+      transition:width .5s ease;
+    }
+    .trend{
+      height:220px;
+      display:flex;
+      align-items:end;
+      gap:10px;
+      padding:14px;
+      border-radius:20px;
+      background:linear-gradient(180deg,#f8fbff,#fff);
+      border:1px solid var(--line);
+    }
+    .trend-col{
+      flex:1;
+      min-width:0;
+      text-align:center;
+      display:flex;
+      flex-direction:column;
+      justify-content:end;
+      align-items:center;
+      gap:8px;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:800;
+    }
+    .trend-bar{
+      width:100%;
+      max-width:48px;
+      border-radius:14px 14px 6px 6px;
+      background:linear-gradient(180deg,#51cf66,#20c997);
+      min-height:6px;
+      transition:height .5s ease;
+    }
+    .empty{
+      color:var(--muted);
+      background:#f8fbff;
+      border:1px dashed #c8d6f2;
+      border-radius:18px;
+      padding:18px;
+      text-align:center;
+    }
+    .strategy-card{
+      background:linear-gradient(135deg,#ffffff,#f8fbff);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:18px;
+      box-shadow:0 10px 20px rgba(34,48,74,.06);
+    }
+    .strategy-card h3{display:flex;gap:8px;align-items:center}
+    .steps{
+      margin:0;
+      padding-left:1.25em;
+    }
+    .steps li{margin:8px 0}
+    .checklist{
+      display:grid;
+      gap:10px;
+    }
+    .check{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:12px;
+    }
+    .check input{width:22px;height:22px;min-height:auto;margin-top:3px}
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:26px;
+      transform:translateX(-50%) translateY(20px);
+      background:#213047;
+      color:#fff;
+      border-radius:999px;
+      padding:12px 18px;
+      box-shadow:var(--shadow);
+      opacity:0;
+      pointer-events:none;
+      transition:.22s;
+      z-index:50;
+      font-weight:900;
+    }
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .modal{
+      position:fixed;
+      inset:0;
+      background:rgba(20,28,45,.42);
+      display:none;
+      place-items:center;
+      z-index:60;
+      padding:18px;
+    }
+    .modal.show{display:grid}
+    .modal-card{
+      width:min(720px,100%);
+      max-height:90vh;
+      overflow:auto;
+      background:#fff;
+      border-radius:28px;
+      padding:22px;
+      box-shadow:0 32px 80px rgba(0,0,0,.22);
+    }
+    .modal-head{
+      display:flex;justify-content:space-between;align-items:center;gap:12px;
+      margin-bottom:10px;
+    }
+    .close{
+      width:42px;height:42px;border:none;border-radius:50%;
+      background:#ffe3e3;color:#c92a2a;font-weight:1000;
+    }
+    .footer-note{
+      margin-top:18px;
+      color:var(--muted);
+      text-align:center;
+      font-size:15px;
+    }
+    @media(max-width:900px){
+      .hero,.grid,.timer-wrap,.chart-grid{grid-template-columns:1fr}
+      .dash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .form-grid{grid-template-columns:1fr}
+    }
+    @media(max-width:560px){
+      body{font-size:17px}
+      .app{width:min(100% - 18px, 1180px);padding-top:10px}
+      .hero-card,.mini-panel,.card{border-radius:22px;padding:18px}
+      .tabs{border-radius:18px}
+      .tab{font-size:16px;padding:10px 12px}
+      .dash-grid{grid-template-columns:1fr}
+      .bar-row{grid-template-columns:86px 1fr 45px}
+      .status-grid{grid-template-columns:1fr}
+    }
+    @media (prefers-reduced-motion: reduce){
+      *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="hero">
+      <div class="hero-card">
+        <h1>高中學習番茄鐘 App</h1>
+        <p>把「專注學習、短暫休息、策略提示、學習紀錄」整合在一起，協助學生用有節奏的方法完成閱讀、筆記、作業與考試準備。</p>
+      </div>
+      <aside class="mini-panel">
+        <div>
+          <h2>今日概況</h2>
+          <p class="muted">資料會儲存在這台裝置的瀏覽器中。</p>
+        </div>
+        <div class="status-grid">
+          <div class="status"><strong id="todayMinutes">0</strong><span>今日專注分鐘</span></div>
+          <div class="status"><strong id="todaySessions">0</strong><span>今日完成輪次</span></div>
+        </div>
+        <div class="top-actions">
+          <button class="btn primary" data-tab-target="timer">開始專注</button>
+          <button class="btn ghost" id="soundToggle">音效：開</button>
+        </div>
+      </aside>
+    </header>
+
+    <nav class="tabs" aria-label="主要功能">
+      <button class="tab active" data-tab="task">任務設定</button>
+      <button class="tab" data-tab="timer">番茄鐘</button>
+      <button class="tab" data-tab="strategy">學習策略</button>
+      <button class="tab" data-tab="dashboard">學習儀表板</button>
+      <button class="tab" data-tab="records">紀錄管理</button>
+    </nav>
+
+    <main>
+      <section class="section active" id="task">
+        <div class="grid">
+          <div class="card">
+            <h2>建立學習任務</h2>
+            <p class="muted">可依不同學科、學習活動或工作需求，設定不同番茄鐘長度與休息節奏。</p>
+            <div class="form-grid">
+              <div>
+                <label for="taskName">任務名稱</label>
+                <input id="taskName" placeholder="例：英文閱讀測驗第 3 回" value="英文閱讀理解練習" />
+              </div>
+              <div>
+                <label for="subject">學科</label>
+                <select id="subject">
+                  <option>國文</option>
+                  <option selected>英文</option>
+                  <option>數學</option>
+                  <option>自然</option>
+                  <option>社會</option>
+                  <option>自主學習</option>
+                  <option>其他</option>
+                </select>
+              </div>
+              <div>
+                <label for="taskType">任務類型</label>
+                <select id="taskType">
+                  <option>閱讀理解</option>
+                  <option>整理筆記</option>
+                  <option>作業</option>
+                  <option>準備考試</option>
+                  <option>題目演練</option>
+                  <option>寫作練習</option>
+                  <option>小組討論</option>
+                  <option>複習錯題</option>
+                </select>
+              </div>
+              <div>
+                <label for="goal">本輪目標</label>
+                <input id="goal" placeholder="例：完成 10 題並標記錯題" value="讀完文章並完成 8 題閱讀測驗" />
+              </div>
+              <div>
+                <label for="focusMin">專注時間（分鐘）</label>
+                <input id="focusMin" type="number" min="5" max="60" value="20" />
+              </div>
+              <div>
+                <label for="breakMin">休息時間（分鐘）</label>
+                <input id="breakMin" type="number" min="1" max="20" value="5" />
+              </div>
+              <div>
+                <label for="roundTarget">預計輪次</label>
+                <input id="roundTarget" type="number" min="1" max="8" value="2" />
+              </div>
+              <div>
+                <label for="difficulty">預估難度</label>
+                <select id="difficulty">
+                  <option value="1">1 輕鬆</option>
+                  <option value="2">2 普通</option>
+                  <option value="3" selected>3 需要專心</option>
+                  <option value="4">4 有挑戰</option>
+                  <option value="5">5 很困難</option>
+                </select>
+              </div>
+              <div class="full">
+                <label for="note">任務說明或提醒</label>
+                <textarea id="note" placeholder="例：先抓主旨，不要卡在單字太久。">先快速抓主旨，再回頭找答案依據；不懂的單字先用上下文推測。</textarea>
+              </div>
+            </div>
+            <div class="top-actions" style="margin-top:16px">
+              <button class="btn primary" id="applyTask">套用到番茄鐘</button>
+              <button class="btn blue" id="savePreset">儲存為常用設定</button>
+              <button class="btn ghost" id="suggestSetting">依任務建議時間</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>常用設定</h2>
+            <p class="muted">相同學科或任務可重複使用，適合建立自己的學習模板。</p>
+            <div class="preset-list" id="presetList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="timer">
+        <div class="timer-wrap">
+          <div class="card timer-card">
+            <h2>專注計時器</h2>
+            <div class="ring" id="ring">
+              <div class="ring-inner">
+                <div>
+                  <div class="time" id="timeText">20:00</div>
+                  <div class="mode" id="modeText">專注中</div>
+                </div>
+              </div>
+            </div>
+            <div class="timer-actions">
+              <button class="btn primary" id="startPause">開始</button>
+              <button class="btn warn" id="switchMode">切換休息</button>
+              <button class="btn ghost" id="resetTimer">重設</button>
+              <button class="btn green" id="finishRound">完成本輪</button>
+            </div>
+            <p class="muted">完成一輪後，系統會自動建立學習紀錄；可再補上心情與反思。</p>
+          </div>
+
+          <div class="card">
+            <h2>目前任務</h2>
+            <div class="task-summary" id="currentTaskCard"></div>
+            <div class="note-box" style="margin-top:16px">
+              <h3>本輪專注守則</h3>
+              <div class="checklist">
+                <label class="check"><input type="checkbox">桌面只留下這輪需要的教材與工具。</label>
+                <label class="check"><input type="checkbox">遇到卡關先做記號，時間結束後再處理。</label>
+                <label class="check"><input type="checkbox">休息時間離開螢幕、伸展或喝水。</label>
+              </div>
+            </div>
+            <div class="quote" id="nextTip" style="margin-top:16px"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="strategy">
+        <div class="grid">
+          <div class="card">
+            <h2>依任務提供學習策略</h2>
+            <p class="muted">選擇任務後，系統會給出適合高中生的操作技巧。可用在課堂、晚自習或考前複習。</p>
+            <div class="strategy-card" id="dynamicStrategy"></div>
+          </div>
+          <div class="card">
+            <h2>策略卡片庫</h2>
+            <div class="strategy-list" id="strategyList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="dashboard">
+        <div class="dash-grid">
+          <div class="metric"><b id="totalSessions">0</b><span>總完成輪次</span></div>
+          <div class="metric"><b id="totalMinutes">0</b><span>總專注分鐘</span></div>
+          <div class="metric"><b id="avgFocus">0</b><span>平均每輪分鐘</span></div>
+          <div class="metric"><b id="bestSubject">—</b><span>最常投入學科</span></div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="card">
+            <h2>學科投入分布</h2>
+            <div id="subjectChart"></div>
+          </div>
+          <div class="card">
+            <h2>任務類型分布</h2>
+            <div id="typeChart"></div>
+          </div>
+          <div class="card">
+            <h2>最近 7 天專注趨勢</h2>
+            <div class="trend" id="weekTrend"></div>
+          </div>
+          <div class="card">
+            <h2>近期學習摘要</h2>
+            <div id="summaryBox"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="records">
+        <div class="grid">
+          <div class="card">
+            <h2>補充完成紀錄</h2>
+            <p class="muted">每次完成後可補充狀態，讓儀表板更能反映真實學習情形。</p>
+            <div class="form-grid">
+              <div>
+                <label for="mood">完成狀態</label>
+                <select id="mood">
+                  <option>很順利</option>
+                  <option selected>大致完成</option>
+                  <option>有點分心</option>
+                  <option>需要協助</option>
+                </select>
+              </div>
+              <div>
+                <label for="quality">自評專注度</label>
+                <select id="quality">
+                  <option value="5">5 非常專注</option>
+                  <option value="4" selected>4 專注</option>
+                  <option value="3">3 普通</option>
+                  <option value="2">2 分心</option>
+                  <option value="1">1 很難進入狀態</option>
+                </select>
+              </div>
+              <div class="full">
+                <label for="reflection">本輪反思</label>
+                <textarea id="reflection" placeholder="例：第 5 題判斷錯誤，下一輪先複習轉折詞。"></textarea>
+              </div>
+            </div>
+            <div class="top-actions" style="margin-top:16px">
+              <button class="btn purple" id="updateLastLog">更新最近一筆紀錄</button>
+              <button class="btn blue" id="exportData">匯出紀錄 JSON</button>
+              <button class="btn ghost" id="importDataBtn">匯入紀錄</button>
+              <input id="importFile" type="file" accept="application/json" style="display:none" />
+              <button class="btn danger" id="clearData">清除全部紀錄</button>
+            </div>
+          </div>
+          <div class="card">
+            <h2>最近完成紀錄</h2>
+            <div class="log-list" id="logList"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <p class="footer-note">設計原則：明確任務、短時間專注、適度休息、即時回饋、長期可視化追蹤。</p>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="modalTitle">學習策略</h2>
+        <button class="close" id="closeModal" aria-label="關閉">×</button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const nowKey = () => new Date().toISOString();
+    const dateKey = (d=new Date()) => {
+      const x = new Date(d);
+      const y = x.getFullYear();
+      const m = String(x.getMonth()+1).padStart(2,'0');
+      const day = String(x.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
+    };
+    const zhDate = (iso) => new Date(iso).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const store = {
+      get(k, fallback){ try{return JSON.parse(localStorage.getItem(k)) ?? fallback}catch{return fallback}},
+      set(k, v){ localStorage.setItem(k, JSON.stringify(v));}
+    };
+
+    const defaultPresets = [
+      {name:"英文閱讀理解", subject:"英文", taskType:"閱讀理解", goal:"讀完一篇文章，完成題目並標出答案依據", focusMin:20, breakMin:5, roundTarget:2, difficulty:"3", note:"先抓主旨與段落功能，卡住的單字先用上下文判斷。"},
+      {name:"數學題目演練", subject:"數學", taskType:"題目演練", goal:"完成 6 題並標記不熟題型", focusMin:25, breakMin:5, roundTarget:2, difficulty:"4", note:"先獨立列式，不會的題目用星號標記，結束後集中訂正。"},
+      {name:"社會科考前整理", subject:"社會", taskType:"準備考試", goal:"完成一份概念比較表與 5 題自我檢測", focusMin:20, breakMin:5, roundTarget:3, difficulty:"3", note:"用時間線、因果關係、關鍵名詞三種方式整理。"},
+      {name:"國文文本筆記", subject:"國文", taskType:"整理筆記", goal:"整理段落大意、關鍵句與作者觀點", focusMin:15, breakMin:4, roundTarget:2, difficulty:"2", note:"每段用一句話摘要，最後寫出本文核心主旨。"}
+    ];
+
+    const strategies = {
+      "閱讀理解": {
+        icon:"📖", title:"閱讀理解策略",
+        intro:"先理解文章結構，再處理細節題，不要一開始就被生字拖住。",
+        steps:["第一遍快速讀：抓主旨、段落功能與作者態度。","第二遍帶題目回文定位：找出答案依據，不只憑感覺選。","標記轉折詞、因果詞、比較詞，這些常是出題位置。","結束後整理 3 個陌生單字與 1 個常錯題型。"],
+        time:"建議 15～25 分鐘一輪，適合英文閱讀、國文文本、社會資料判讀。"
+      },
+      "整理筆記": {
+        icon:"📝", title:"整理筆記策略",
+        intro:"筆記不是抄課本，而是把內容重新組織成自己看得懂的架構。",
+        steps:["先列出本單元 3～5 個大概念。","用表格、流程圖、因果箭頭整理關係。","每個概念補一個例子或考題提醒。","最後寫一句：這一頁筆記最重要的觀念是什麼。"],
+        time:"建議 15～20 分鐘一輪，搭配 3 分鐘檢查空白與錯漏。"
+      },
+      "作業": {
+        icon:"📚", title:"作業完成策略",
+        intro:"先把作業拆成可完成的小段，避免因為看起來太多而拖延。",
+        steps:["先掃描全部題目，標出簡單、中等、困難。","從中等題開始，讓大腦進入狀態。","卡題超過 3 分鐘就先做記號，不要整輪卡死。","結束後檢查格式、單位、答案是否完整。"],
+        time:"建議 20～25 分鐘一輪，適合數學、自然、英文習作。"
+      },
+      "準備考試": {
+        icon:"🎯", title:"考試準備策略",
+        intro:"考前不要只重讀課本，應該用回想、題目與錯題來檢查自己。",
+        steps:["先閉書回想本單元重點，寫出關鍵詞。","用題目檢測，不熟的地方再回到課本。","建立錯題清單：錯因分成觀念、計算、粗心、題意。","最後用 5 分鐘安排下一輪優先複習項目。"],
+        time:"建議 20～30 分鐘一輪，短休息後再接下一個單元。"
+      },
+      "題目演練": {
+        icon:"🧮", title:"題目演練策略",
+        intro:"演練重點不只是做完，而是知道自己為什麼會錯、下次如何避免。",
+        steps:["先設定題數與時間，例如 20 分鐘 8 題。","每題旁邊寫下使用的公式、概念或判斷依據。","訂正時不要只抄答案，要補上錯因。","把錯題轉成一張『下次提醒卡』。"],
+        time:"建議 20～25 分鐘一輪，適合數學、物理、化學。"
+      },
+      "寫作練習": {
+        icon:"✍️", title:"寫作練習策略",
+        intro:"寫作番茄鐘可分成構思、成文、修改三輪，不要一次要求完美。",
+        steps:["第一輪：列立場、素材、段落架構。","第二輪：先寫完整，不邊寫邊大改。","第三輪：檢查主題句、連接詞、例證與結尾。","最後朗讀一遍，找出不順的句子。"],
+        time:"建議 15～25 分鐘一輪，適合作文、英文短文、報告。"
+      },
+      "小組討論": {
+        icon:"💬", title:"小組討論策略",
+        intro:"先個人思考再小組整合，討論會更聚焦、更有產出。",
+        steps:["個人 3 分鐘先寫下自己的答案。","小組 8～10 分鐘交換觀點，每人都要發言。","最後 5 分鐘整理成一個共同結論。","發表時必須包含主張、理由、證據。"],
+        time:"建議 10～15 分鐘一輪，適合議題討論與探究課程。"
+      },
+      "複習錯題": {
+        icon:"🔍", title:"錯題複習策略",
+        intro:"錯題是最有效的學習線索，重點是分類錯因與重新練習。",
+        steps:["先把錯題分成觀念不熟、計算失誤、看錯題意、時間不足。","每題寫一句『我原本怎麼想錯』。","找一題相似題重做，確認不是只記答案。","把高頻錯因寫成下一次考前提醒。"],
+        time:"建議 15～20 分鐘一輪，適合考後訂正與段考複習。"
+      }
+    };
+
+    let app = {
+      presets: store.get("lp_presets", defaultPresets),
+      logs: store.get("lp_logs", []),
+      current: store.get("lp_current", defaultPresets[0]),
+      timer: {running:false, mode:"focus", remain:20*60, total:20*60, interval:null},
+      sound: store.get("lp_sound", true)
+    };
+
+    function toast(msg){
+      $("toast").textContent = msg;
+      $("toast").classList.add("show");
+      setTimeout(()=>$("toast").classList.remove("show"), 1800);
+    }
+
+    function beep(kind="done"){
+      if(!app.sound) return;
+      try{
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioContext();
+        const gain = ctx.createGain();
+        const osc = ctx.createOscillator();
+        osc.type = kind === "start" ? "triangle" : "sine";
+        osc.frequency.value = kind === "break" ? 660 : kind === "start" ? 520 : 880;
+        gain.gain.setValueAtTime(.0001, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.18, ctx.currentTime+.02);
+        gain.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime+.35);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime+.38);
+      }catch(e){}
+    }
+
+    function formToTask(){
+      return {
+        name:$("taskName").value.trim() || "未命名任務",
+        subject:$("subject").value,
+        taskType:$("taskType").value,
+        goal:$("goal").value.trim() || "完成本輪學習目標",
+        focusMin:Math.max(5, Math.min(60, Number($("focusMin").value)||20)),
+        breakMin:Math.max(1, Math.min(20, Number($("breakMin").value)||5)),
+        roundTarget:Math.max(1, Math.min(8, Number($("roundTarget").value)||1)),
+        difficulty:$("difficulty").value,
+        note:$("note").value.trim()
+      };
+    }
+
+    function taskToForm(t){
+      $("taskName").value=t.name||"";
+      $("subject").value=t.subject||"英文";
+      $("taskType").value=t.taskType||"閱讀理解";
+      $("goal").value=t.goal||"";
+      $("focusMin").value=t.focusMin||20;
+      $("breakMin").value=t.breakMin||5;
+      $("roundTarget").value=t.roundTarget||1;
+      $("difficulty").value=t.difficulty||"3";
+      $("note").value=t.note||"";
+      updateDynamicStrategy();
+    }
+
+    function applyCurrent(task=formToTask()){
+      app.current = task;
+      store.set("lp_current", app.current);
+      app.timer.mode = "focus";
+      app.timer.running = false;
+      clearInterval(app.timer.interval);
+      setTimer(task.focusMin*60);
+      renderCurrentTask();
+      updateDynamicStrategy();
+      toast("已套用到番茄鐘");
+    }
+
+    function setTimer(seconds){
+      app.timer.remain = seconds;
+      app.timer.total = seconds;
+      renderTimer();
+    }
+
+    function fmt(sec){
+      const m = Math.floor(sec/60);
+      const s = sec%60;
+      return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+    }
+
+    function renderTimer(){
+      $("timeText").textContent = fmt(app.timer.remain);
+      $("modeText").textContent = app.timer.mode === "focus" ? "專注中" : "休息中";
+      $("startPause").textContent = app.timer.running ? "暫停" : "開始";
+      const done = app.timer.total ? (1 - app.timer.remain/app.timer.total) * 360 : 0;
+      const color = app.timer.mode === "focus" ? "var(--primary)" : "var(--green)";
+      $("ring").style.background = `conic-gradient(${color} ${done}deg, #edf2ff ${done}deg)`;
+    }
+
+    function tick(){
+      if(app.timer.remain > 0){
+        app.timer.remain -= 1;
+        renderTimer();
+      }else{
+        clearInterval(app.timer.interval);
+        app.timer.running = false;
+        renderTimer();
+        if(app.timer.mode === "focus"){
+          beep("done");
+          finishRound(true);
+          switchToBreak();
+          toast("專注完成，休息一下！");
+        }else{
+          beep("start");
+          switchToFocus();
+          toast("休息結束，回到下一輪！");
+        }
+      }
+    }
+
+    function startPause(){
+      if(app.timer.running){
+        clearInterval(app.timer.interval);
+        app.timer.running = false;
+        renderTimer();
+        toast("已暫停");
+      }else{
+        app.timer.running = true;
+        app.timer.interval = setInterval(tick, 1000);
+        renderTimer();
+        beep("start");
+      }
+    }
+
+    function switchToBreak(){
+      app.timer.mode = "break";
+      clearInterval(app.timer.interval);
+      app.timer.running = false;
+      setTimer((app.current.breakMin||5)*60);
+      beep("break");
+    }
+
+    function switchToFocus(){
+      app.timer.mode = "focus";
+      clearInterval(app.timer.interval);
+      app.timer.running = false;
+      setTimer((app.current.focusMin||20)*60);
+    }
+
+    function resetTimer(){
+      clearInterval(app.timer.interval);
+      app.timer.running = false;
+      app.timer.mode === "focus" ? switchToFocus() : switchToBreak();
+      toast("已重設計時器");
+    }
+
+    function finishRound(auto=false){
+      if(app.timer.mode !== "focus" && !auto) {
+        toast("目前是休息模式，未新增專注紀錄");
+        return;
+      }
+      const task = app.current;
+      const log = {
+        id:crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        createdAt:nowKey(),
+        date:dateKey(),
+        name:task.name,
+        subject:task.subject,
+        taskType:task.taskType,
+        goal:task.goal,
+        focusMin:Number(task.focusMin)||20,
+        difficulty:task.difficulty,
+        mood:$("mood").value,
+        quality:Number($("quality").value)||4,
+        reflection:$("reflection").value.trim()
+      };
+      app.logs.unshift(log);
+      store.set("lp_logs", app.logs);
+      $("reflection").value="";
+      renderAll();
+      if(!auto) {
+        beep("done");
+        toast("已完成並新增紀錄");
+      }
+    }
+
+    function renderCurrentTask(){
+      const t = app.current;
+      $("currentTaskCard").innerHTML = `
+        <div class="preset">
+          <div class="preset-head">
+            <h3>${escapeHtml(t.name)}</h3>
+            <span class="tag orange">${escapeHtml(t.subject)}</span>
+          </div>
+          <div>
+            <span class="tag purple">${escapeHtml(t.taskType)}</span>
+            <span class="tag green">專注 ${t.focusMin} 分</span>
+            <span class="tag">休息 ${t.breakMin} 分</span>
+            <span class="tag pink">預計 ${t.roundTarget} 輪</span>
+          </div>
+          <p><b>目標：</b>${escapeHtml(t.goal)}</p>
+          <p class="muted"><b>提醒：</b>${escapeHtml(t.note || "保持專注，結束後再統一處理卡關問題。")}</p>
+        </div>
+      `;
+      const st = strategies[t.taskType] || strategies["閱讀理解"];
+      $("nextTip").textContent = `${st.icon} ${st.intro}`;
+    }
+
+    function renderPresets(){
+      const box = $("presetList");
+      if(!app.presets.length){ box.innerHTML = `<div class="empty">尚未建立常用設定。</div>`; return; }
+      box.innerHTML = app.presets.map((p,i)=>`
+        <div class="preset">
+          <div class="preset-head">
+            <h3>${escapeHtml(p.name)}</h3>
+            <button class="btn ghost" onclick="usePreset(${i})">套用</button>
+          </div>
+          <div>
+            <span class="tag orange">${escapeHtml(p.subject)}</span>
+            <span class="tag purple">${escapeHtml(p.taskType)}</span>
+            <span class="tag green">${p.focusMin} 分專注</span>
+            <span class="tag">${p.breakMin} 分休息</span>
+          </div>
+          <p class="muted">${escapeHtml(p.goal)}</p>
+          <div class="top-actions">
+            <button class="btn ghost" onclick="editPreset(${i})">編輯表單</button>
+            <button class="btn danger" onclick="deletePreset(${i})">刪除</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    window.usePreset = function(i){
+      const p = app.presets[i];
+      taskToForm(p);
+      applyCurrent(p);
+      showTab("timer");
+    }
+    window.editPreset = function(i){
+      taskToForm(app.presets[i]);
+      showTab("task");
+      toast("已載入表單，可修改後重新儲存");
+    }
+    window.deletePreset = function(i){
+      if(!confirm("確定要刪除此常用設定？")) return;
+      app.presets.splice(i,1);
+      store.set("lp_presets", app.presets);
+      renderPresets();
+      toast("已刪除常用設定");
+    }
+
+    function savePreset(){
+      const t = formToTask();
+      app.presets.unshift(t);
+      store.set("lp_presets", app.presets);
+      renderPresets();
+      toast("已儲存為常用設定");
+    }
+
+    function suggestSetting(){
+      const type = $("taskType").value;
+      const map = {
+        "閱讀理解":[20,5], "整理筆記":[15,4], "作業":[25,5], "準備考試":[25,5],
+        "題目演練":[25,5], "寫作練習":[20,5], "小組討論":[12,3], "複習錯題":[18,4]
+      };
+      const [f,b] = map[type] || [20,5];
+      $("focusMin").value=f; $("breakMin").value=b;
+      updateDynamicStrategy();
+      toast(`已依「${type}」建議 ${f}+${b} 分鐘`);
+    }
+
+    function updateDynamicStrategy(){
+      const type = $("taskType").value;
+      const s = strategies[type] || strategies["閱讀理解"];
+      $("dynamicStrategy").innerHTML = `
+        <h3>${s.icon} ${s.title}</h3>
+        <p>${s.intro}</p>
+        <ol class="steps">${s.steps.map(x=>`<li>${x}</li>`).join("")}</ol>
+        <p class="quote">${s.time}</p>
+      `;
+    }
+
+    function renderStrategies(){
+      $("strategyList").innerHTML = Object.entries(strategies).map(([key,s])=>`
+        <div class="strategy">
+          <div class="strategy-head">
+            <h3>${s.icon} ${s.title}</h3>
+            <button class="btn ghost" onclick="openStrategy('${key}')">查看</button>
+          </div>
+          <p class="muted">${s.intro}</p>
+        </div>
+      `).join("");
+    }
+
+    window.openStrategy = function(key){
+      const s = strategies[key];
+      $("modalTitle").textContent = `${s.icon} ${s.title}`;
+      $("modalBody").innerHTML = `
+        <p>${s.intro}</p>
+        <ol class="steps">${s.steps.map(x=>`<li>${x}</li>`).join("")}</ol>
+        <p class="quote">${s.time}</p>
+      `;
+      $("modal").classList.add("show");
+    }
+
+    function aggregateBy(key){
+      return app.logs.reduce((acc,log)=>{
+        const k = log[key] || "未分類";
+        acc[k] = (acc[k]||0) + Number(log.focusMin||0);
+        return acc;
+      },{});
+    }
+
+    function renderBarChart(id, dataObj, suffix="分"){
+      const entries = Object.entries(dataObj).sort((a,b)=>b[1]-a[1]);
+      const box = $(id);
+      if(!entries.length){ box.innerHTML = `<div class="empty">完成幾輪番茄鐘後，這裡會出現圖表。</div>`; return; }
+      const max = Math.max(...entries.map(x=>x[1]),1);
+      box.innerHTML = entries.map(([k,v])=>`
+        <div class="bar-row">
+          <div title="${escapeHtml(k)}">${escapeHtml(k)}</div>
+          <div class="bar-track"><div class="bar" style="width:${Math.max(5, v/max*100)}%"></div></div>
+          <div>${v}${suffix}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderTrend(){
+      const box = $("weekTrend");
+      const days = [...Array(7)].map((_,i)=>{
+        const d = new Date();
+        d.setDate(d.getDate()-(6-i));
+        const key = dateKey(d);
+        const label = d.toLocaleDateString("zh-TW",{weekday:"short"});
+        const mins = app.logs.filter(l=>l.date===key).reduce((sum,l)=>sum+Number(l.focusMin||0),0);
+        return {key,label,mins};
+      });
+      const max = Math.max(...days.map(d=>d.mins),1);
+      box.innerHTML = days.map(d=>`
+        <div class="trend-col" title="${d.key}：${d.mins} 分">
+          <div>${d.mins}</div>
+          <div class="trend-bar" style="height:${Math.max(6, d.mins/max*160)}px"></div>
+          <div>${d.label}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderDashboard(){
+      const totalSessions = app.logs.length;
+      const totalMinutes = app.logs.reduce((s,l)=>s+Number(l.focusMin||0),0);
+      const avg = totalSessions ? Math.round(totalMinutes/totalSessions) : 0;
+      const subjectAgg = aggregateBy("subject");
+      const best = Object.entries(subjectAgg).sort((a,b)=>b[1]-a[1])[0]?.[0] || "—";
+      $("totalSessions").textContent = totalSessions;
+      $("totalMinutes").textContent = totalMinutes;
+      $("avgFocus").textContent = avg;
+      $("bestSubject").textContent = best;
+      renderBarChart("subjectChart", subjectAgg);
+      renderBarChart("typeChart", aggregateBy("taskType"));
+      renderTrend();
+
+      if(!app.logs.length){
+        $("summaryBox").innerHTML = `<div class="empty">尚無紀錄。完成一輪後，系統會自動產生摘要。</div>`;
+      }else{
+        const qAvg = (app.logs.reduce((s,l)=>s+Number(l.quality||0),0)/app.logs.length).toFixed(1);
+        const recent = app.logs.slice(0,3).map(l=>`${l.subject}－${l.taskType}`).join("、");
+        $("summaryBox").innerHTML = `
+          <div class="note-box">
+            <h3>學習觀察</h3>
+            <p>目前平均專注度為 <b>${qAvg}/5</b>，累積最多時間的學科是 <b>${escapeHtml(best)}</b>。</p>
+            <p>最近的學習任務包含：${escapeHtml(recent)}。</p>
+            <p class="quote">建議：下次可以先從最近反思中「最卡」的內容開始，讓下一輪番茄鐘更有目標。</p>
+          </div>
+        `;
+      }
+      renderToday();
+    }
+
+    function renderToday(){
+      const today = dateKey();
+      const logs = app.logs.filter(l=>l.date===today);
+      $("todayMinutes").textContent = logs.reduce((s,l)=>s+Number(l.focusMin||0),0);
+      $("todaySessions").textContent = logs.length;
+    }
+
+    function renderLogs(){
+      const box = $("logList");
+      if(!app.logs.length){ box.innerHTML = `<div class="empty">尚未有完成紀錄。</div>`; return; }
+      box.innerHTML = app.logs.slice(0,30).map((l,i)=>`
+        <div class="log">
+          <div class="log-head">
+            <h3>${escapeHtml(l.name)}</h3>
+            <button class="btn danger" onclick="deleteLog(${i})">刪除</button>
+          </div>
+          <div>
+            <span class="tag orange">${escapeHtml(l.subject)}</span>
+            <span class="tag purple">${escapeHtml(l.taskType)}</span>
+            <span class="tag green">${l.focusMin} 分</span>
+            <span class="tag">專注度 ${l.quality || "—"}/5</span>
+          </div>
+          <p><b>目標：</b>${escapeHtml(l.goal)}</p>
+          <p class="muted">${zhDate(l.createdAt)}｜${escapeHtml(l.mood||"未填狀態")}</p>
+          ${l.reflection ? `<p class="quote">${escapeHtml(l.reflection)}</p>` : ""}
+        </div>
+      `).join("");
+    }
+
+    window.deleteLog = function(i){
+      if(!confirm("確定刪除此筆紀錄？")) return;
+      app.logs.splice(i,1);
+      store.set("lp_logs", app.logs);
+      renderAll();
+      toast("已刪除紀錄");
+    }
+
+    function updateLastLog(){
+      if(!app.logs.length){ toast("尚無紀錄可更新"); return; }
+      app.logs[0].mood = $("mood").value;
+      app.logs[0].quality = Number($("quality").value);
+      app.logs[0].reflection = $("reflection").value.trim();
+      store.set("lp_logs", app.logs);
+      renderAll();
+      toast("已更新最近一筆紀錄");
+    }
+
+    function exportData(){
+      const payload = {exportedAt:nowKey(), presets:app.presets, logs:app.logs};
+      const blob = new Blob([JSON.stringify(payload,null,2)], {type:"application/json"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `learning-pomodoro-${dateKey()}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast("已匯出紀錄");
+    }
+
+    function importData(file){
+      const reader = new FileReader();
+      reader.onload = () => {
+        try{
+          const data = JSON.parse(reader.result);
+          if(Array.isArray(data.logs)) app.logs = data.logs;
+          if(Array.isArray(data.presets)) app.presets = data.presets;
+          store.set("lp_logs", app.logs);
+          store.set("lp_presets", app.presets);
+          renderAll();
+          toast("匯入完成");
+        }catch(e){ toast("匯入失敗，檔案格式不正確"); }
+      };
+      reader.readAsText(file);
+    }
+
+    function clearData(){
+      if(!confirm("確定清除所有學習紀錄？常用設定會保留。")) return;
+      app.logs = [];
+      store.set("lp_logs", app.logs);
+      renderAll();
+      toast("已清除紀錄");
+    }
+
+    function showTab(id){
+      document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===id));
+      document.querySelectorAll(".section").forEach(s=>s.classList.toggle("active", s.id===id));
+      window.scrollTo({top:0,behavior:"smooth"});
+    }
+
+    function escapeHtml(str){
+      return String(str ?? "").replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[m]));
+    }
+
+    function renderAll(){
+      renderPresets();
+      renderCurrentTask();
+      renderStrategies();
+      updateDynamicStrategy();
+      renderDashboard();
+      renderLogs();
+      renderTimer();
+      $("soundToggle").textContent = `音效：${app.sound ? "開" : "關"}`;
+    }
+
+    document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>showTab(btn.dataset.tab)));
+    document.querySelectorAll("[data-tab-target]").forEach(btn=>btn.addEventListener("click",()=>showTab(btn.dataset.tabTarget)));
+    $("applyTask").addEventListener("click",()=>applyCurrent());
+    $("savePreset").addEventListener("click",savePreset);
+    $("suggestSetting").addEventListener("click",suggestSetting);
+    $("taskType").addEventListener("change", updateDynamicStrategy);
+    $("startPause").addEventListener("click", startPause);
+    $("switchMode").addEventListener("click",()=> app.timer.mode==="focus" ? switchToBreak() : switchToFocus());
+    $("resetTimer").addEventListener("click", resetTimer);
+    $("finishRound").addEventListener("click",()=>finishRound(false));
+    $("updateLastLog").addEventListener("click", updateLastLog);
+    $("exportData").addEventListener("click", exportData);
+    $("importDataBtn").addEventListener("click",()=>$("importFile").click());
+    $("importFile").addEventListener("change",(e)=> e.target.files[0] && importData(e.target.files[0]));
+    $("clearData").addEventListener("click", clearData);
+    $("soundToggle").addEventListener("click",()=>{
+      app.sound = !app.sound;
+      store.set("lp_sound", app.sound);
+      $("soundToggle").textContent = `音效：${app.sound ? "開" : "關"}`;
+      if(app.sound) beep("start");
+    });
+    $("closeModal").addEventListener("click",()=>$("modal").classList.remove("show"));
+    $("modal").addEventListener("click",(e)=>{ if(e.target.id==="modal") $("modal").classList.remove("show"); });
+
+    taskToForm(app.current);
+    applyCurrent(app.current);
+    renderAll();
+  </script>
+</body>
+</html>
